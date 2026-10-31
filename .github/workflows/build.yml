@@ -1,4 +1,5 @@
 name: build
+# Builds the rules daily and publishes them to the dist branch when they changed.
 
 on:
   schedule:

@@ -1,0 +1,46 @@
+# Everything Claude and Anthropic: always through the dedicated Claude server, never through the
+# general VPN and never direct. These rules come first in the config, so nothing else overrides them,
+# and the Claude server accepts exactly this list (client-claude.dat / client-claude-ip.dat).
+#
+#   example.com        the domain and all its subdomains
+#   full:a.example.com only this exact host (for third-party services shared with other sites)
+#   1.2.3.0/24         an IP range (catches apps that connect without a name); IPv6 ranges too
+#
+# Kept to what Claude needs, because everything here goes through the Claude server's home line:
+# shared hosts that only deliver files (Google Fonts, cdnjs, jsDelivr, unpkg, npm, GitHub, Google
+# Cloud Storage) and optional telemetry (Datadog, Sentry, GrowthBook) stay on the general VPN.
+# Where those are fetched from doesn't affect Claude.
+
+# --- Anthropic's own domains (the list claude.ai itself treats as first-party, 2026-11-02)
+anthropic.com          # api, platform, assets-proxy, statsig, a-api, a-cdn, s-cdn, mcp-proxy, status, docs, support
+claude.ai              # the app, api.claude.ai, assets, downloads (installers, updates), a.claude.ai
+claude.com             # platform, sso, code, docs, support, releases, status, *.mcp.claude.com connectors
+claude.app
+claude.dev
+claude.site            # published artifacts (older links)
+claudestudio.com
+claudeusercontent.com  # artifacts (*.frame.), Claude in Chrome bridge, repl
+claudemcpcontent.com   # MCP App widgets
+claudemcpclient.com
+clau.de                # Anthropic's short links (redirect to claude.ai)
+ant.dev
+antspace.dev
+
+# --- Anthropic pages hosted by other companies
+full:anthropic.skilljar.com     # Anthropic Academy
+full:claude.findahelpline.com   # crisis helpline pages Claude links to
+full:claude.turbovote.org
+full:anthropic.turbovote.org
+
+# --- Checks and payments that compare your address with the one claude.ai sees
+hcaptcha.com           # claude.ai sign-in and client attestation (invisible hCaptcha)
+stripe.com             # paying for Claude (js.stripe.com, api.stripe.com, checkout, billing portal)
+stripe.network         # Stripe's fraud check frame (m.stripe.network)
+stripecdn.com
+
+# --- Anthropic's network (AS399358), for apps that connect to an address directly
+# (https://platform.claude.com/docs/en/api/ip-addresses: inbound /23 inside the /21; "will not
+# change without notice")
+160.79.104.0/21
+2607:6bc0::/48
+2607:6bc0:11::/48

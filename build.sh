@@ -1,17 +1,14 @@
 #!/usr/bin/env bash
-# Builds the Shadowrocket config and the Claude server's lists from the local lists and the upstream sources:
-#   claude-route.txt                       Claude and Anthropic                -> Claude (the Claude server)
-#   provider-direct.txt                    the VPN's subscription server       -> DIRECT
+# Builds the Shadowrocket config and the matching server-side lists from the upstream sources:
 #   v2fly category-ru                      Russian sites                       -> DIRECT
 #   runetfreedom ru-available-only-inside  only work from inside Russia        -> DIRECT (always)
-#   runetfreedom ru-blocked                blocked by Russia                   -> Auto (the VPN)
+#   runetfreedom ru-blocked                blocked by Russia                   -> PROXY
 #   never-direct.txt / extra-ru-domains.txt  local corrections
 #   HaGeZi Pro + TIF medium                ads, trackers, malware (DIRECT part only) -> REJECT
-#   everything else                                                            -> Auto
 # Then checks the result; a failed check stops here, so nothing broken gets published.
 #
 # usage: ./build.sh [out-dir]     (default: ./out)
-# Writes out-dir/shadowrocket.conf, client-claude.dat and client-claude-ip.dat.
+# Writes out-dir/shadowrocket.conf, client-direct.dat and client-proxy.dat.
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -42,12 +39,11 @@ done
 echo "==> Building"
 python3 -I "$tools/build_conf.py" "$cache/ru-rules.txt" "$here/extra-ru-domains.txt" "$here/never-direct.txt" \
   "$cache/runet/ru-available-only-inside.txt" "$cache/runet/ru-blocked.txt" \
-  "$here/claude-route.txt" "$here/provider-direct.txt" \
   "$out/shadowrocket.conf" "$out" "$cache/hagezi/pro.txt" "$cache/hagezi/tif.medium.txt"
 
-echo "==> Checking (groups, named test sites, list sizes, the Claude server lists, the world's top 20,000 sites)"
+echo "==> Checking (named test sites, list sizes, the world's top 20,000 sites)"
 curl -fsSL --retry 3 -o "$cache/tranco/top.zip" https://tranco-list.eu/top-1m.csv.zip
 python3 -I -c 'import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])' \
   "$cache/tranco/top.zip" "$cache/tranco"
 python3 -I "$tools/check_rules.py" "$out/shadowrocket.conf" \
-  "$cache/runet/ru-available-only-inside.txt" "$out" "$cache/tranco/top-1m.csv"
+  "$cache/runet/ru-available-only-inside.txt" "$cache/tranco/top-1m.csv"

@@ -1,4 +1,4 @@
 # Russian sites missing from v2fly's category-ru, to send DIRECT. One domain per line; subdomains
-# are included. Add a site when it misbehaves through the VPN but works without it (Russian
-# services often refuse foreign addresses).
-# (Sites Russia blocks are handled separately and always go through the VPN.)
+# are included. Add a site when the server log shows it being refused:
+#   journalctl -u xray | grep ru-refused
+# (Sites Russia blocks are handled separately and always go through the proxy.)

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Publishes a build to the `dist` branch, but only when the rules changed (a new build date alone
-# doesn't count).
+# doesn't count). The previous client-proxy.dat is kept as client-proxy-prev.dat, so a server that
+# already has the new lists still accepts what a client on yesterday's config sends.
 #
 # usage: ./publish.sh <out-dir>     (run from a clone with push access; CI does this daily)
 set -euo pipefail
 
 out=$(cd "$1" && pwd)
 repo=$(cd "$(dirname "$0")" && pwd)
-files=(shadowrocket.conf client-claude.dat client-claude-ip.dat)
 wt=$(mktemp -d)
 trap 'git -C "$repo" worktree remove --force "$wt" 2>/dev/null || rm -rf "$wt"' EXIT
 
@@ -20,26 +20,27 @@ else
 fi
 
 strip() { grep -v '^# Built ' "$1"; }
-same=1
-for f in "${files[@]}"; do
-  if [[ ! -f $wt/$f ]]; then same=0
-  elif [[ $f == *.conf ]]; then cmp -s <(strip "$out/$f") <(strip "$wt/$f") || same=0
-  else cmp -s "$out/$f" "$wt/$f" || same=0
-  fi
-done
-if [[ $same = 1 ]]; then
+if [[ -f $wt/shadowrocket.conf ]] &&
+   cmp -s <(strip "$out/shadowrocket.conf") <(strip "$wt/shadowrocket.conf") &&
+   cmp -s "$out/client-direct.dat" "$wt/client-direct.dat" &&
+   cmp -s "$out/client-proxy.dat" "$wt/client-proxy.dat"; then
   echo "Rules unchanged; nothing to publish"
   exit 0
 fi
 
-git -C "$wt" rm -q --ignore-unmatch client-direct.dat client-proxy.dat client-proxy-prev.dat
-for f in "${files[@]}"; do cp "$out/$f" "$wt/"; done
+if [[ -f $wt/client-proxy.dat ]]; then
+  cp "$wt/client-proxy.dat" "$wt/client-proxy-prev.dat"
+else
+  cp "$out/client-proxy.dat" "$wt/client-proxy-prev.dat"
+fi
+# dist holds exactly this build: anything else there (lists of an earlier design) is removed
+find "$wt" -mindepth 1 -maxdepth 1 ! -name .git ! -name client-proxy-prev.dat -exec rm -rf {} +
+cp "$out/shadowrocket.conf" "$out/client-direct.dat" "$out/client-proxy.dat" "$wt/"
 cat >"$wt/README.md" <<'EOF'
 Published rules (built daily by the `build` workflow on `main`; don't edit here).
 
 - `shadowrocket.conf`: the Shadowrocket config (add it in Shadowrocket from its raw URL)
-- `client-claude.dat`, `client-claude-ip.dat`: the config's Claude rules for the Claude server's Xray
-  (geosite and geoip format, list `claude`)
+- `client-direct.dat`, `client-proxy.dat`, `client-proxy-prev.dat`: the matching lists for the Xray server
 EOF
 cd "$wt"
 git add -A

@@ -1,5 +1,0 @@
-# The general VPN provider's subscription server: always over the normal (Russian) connection.
-# From Germany it answers every request with "500 Internal Server Error" (2026-11-02), so it most
-# likely serves only Russian addresses; fetching it directly also keeps the server list updatable
-# when every server in the old list has stopped working. One domain per line; subdomains included.
-conn-liberty.net

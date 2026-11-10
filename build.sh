@@ -7,14 +7,15 @@
 #   HaGeZi Pro + TIF medium                ads, trackers, malware (DIRECT part only) -> REJECT
 # Then checks the result; a failed check stops here, so nothing broken gets published.
 #
-# usage: ./build.sh [out-dir]     (default: ./out)
+# usage: ./build.sh [out-dir]     (default: ~/.cache/shadowrocket-ru-split/out)
 # Writes out-dir/shadowrocket.conf, client-direct.dat and client-proxy.dat.
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
-out=$(mkdir -p "${1:-$here/out}" && cd "${1:-$here/out}" && pwd)
+base=${XDG_CACHE_HOME:-$HOME/.cache}/shadowrocket-ru-split
+out=$(mkdir -p "${1:-$base/out}" && cd "${1:-$base/out}" && pwd)
 tools=$here/tools
-cache=$here/.cache
+cache=$base/lists
 export UPDATE_URL=${UPDATE_URL:-https://raw.githubusercontent.com/82hz4j8b4n-star/shadowrocket-ru-split/dist/shadowrocket.conf}
 
 rm -rf "$cache"

@@ -32,4 +32,4 @@ build that passes and actually changed is published to the `dist` branch.
 `client-direct.dat` / `client-proxy.dat` on `dist` are the same lists in Xray geosite format, for
 a server that wants to refuse what clients send direct and accept what they send through.
 
-Local build: `./build.sh` (needs `python3`, `curl`).
+Local build: `./build.sh` (needs `python3` and `curl`) writes to `~/.cache/shadowrocket-ru-split`.
